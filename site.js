@@ -168,13 +168,24 @@ function populate_table() {
 let times;
 let shrines;
 let dungeons;
+let notes = {};
 let starts = {};
 let ends = {};
 async function init() {
     shrines = await get_file('shrines.json');
     dungeons = await get_file('Dungeon.json');
-    times = await get_file("timings.json")
+    times = await get_file("timings.json");
+    let tmp_notes = await get_file("notes.json");
 
+    for(const note of tmp_notes) {
+        console.log(note);
+        let key = `${note.start}-${note.end}-${note.youtube_id}`;
+        if(key in notes) {
+            console.log(`Multiple instances, using last version: ${key}`);
+        }
+        notes[key] = note;
+    }
+    
     //btbs = file.drawData.features;
     for(var i = 0; i < times.length; i++) {
         let feat = times[i];
@@ -191,7 +202,10 @@ async function init() {
         }
         starts[feat.start].push(feat);
         ends[feat.end].push(feat);
-            
+        key = `${feat.start}-${feat.end}-${feat.youtube_id}`;
+        if(key in notes) {
+            feat.note = notes[key];
+        }
     }
     draw_shrines();
     populate_table();
@@ -213,6 +227,15 @@ function t2ms(t) {
     return `${m}:${s}.${part}`;
 }
 
+function $li(txt) {
+    let el = document.createElement("li");
+    el.innerHTML = txt;
+    return el;
+}
+function $ul(txt) {
+    return document.createElement("ul");
+}
+
 function btb_popup( btbs, long) {
     let btb = btbs[0];
     //let prop = props( btb )
@@ -225,38 +248,29 @@ function btb_popup( btbs, long) {
     let d = div();
     d.innerHTML = `<b>${btb.start} - ${btb.end}</b>`;
     up.appendChild(d);
-    let rows = [
-        //`<b>From:</b> ${btb.start}`,
-        //`<b>To:</b>   ${btb.end}`,
-    ];
-    
+    let rows = []
+    let ul = $ul();
     for(const btb of btbs.sort((a,b) => {return a.t-b.t;})) {
         let warp = "";
         if(btb.warp) {
             warp = `Warp ${btb.warp}`;
         }
         let url = `https://youtu.be/${btb.youtube_id}?t=${btb.t0}`;
-        rows.push(`${t2ms(btb.t)} <a href=${url} target="_blank">video</a> ${btb.runner} ${warp}`);
+        ul.appendChild($li(`${t2ms(btb.t)} <a href=${url} target="_blank">video</a> ${btb.runner} ${warp}`));
+        if(btb.note) {
+            let ul2 = $ul();
+            ul2.appendChild($li(btb.note.note));
+            ul.appendChild(ul2);
+        }
+        if(btb.warp) {
+            let ul2 = $ul();
+            ul2.appendChild($li(`Warp from ${btb.warp}`));
+            ul.appendChild(ul2);
+        }
     }
-    
     if(long) {
-        rows.push( ... [ `Distance ${btb.dist.toFixed(2)} m`,
-                        // `- ${btb.t.toFixed(2)} s`,
-                         //`- ${speed_ms.toFixed(2)} m/s`,
-                         //`- ${speed_kmh.toFixed(2)} km/h (${speed_mph.toFixed(2)} mph)`]);
-                       ]);
-    } else {
-        //rows.push(`<a href="#" onclick="return open_popup('${prop.name}');">Open Popup</a>`);
+        ul.appendChild($li( `Distance ${btb.dist.toFixed(2)} m` ))
     }
-    //rows.push( `<a href="#" onclick="return doit('${prop.file}');">json</a>` )
-    let ul = document.createElement('ul');
-    rows.forEach(row => {
-        //let d = div();
-        let d = document.createElement('li');
-        d.innerHTML = row;
-        //d.classList.add("pl10");
-        ul.appendChild(d);
-    });
     up.appendChild(ul);
 
     return up;

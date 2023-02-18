@@ -255,7 +255,7 @@ function btb_popup( btbs, long) {
         if(btb.warp) {
             warp = `Warp ${btb.warp}`;
         }
-        let url = `https://youtu.be/${btb.youtube_id}?t=${btb.t0}`;
+        let url = `https://youtu.be/${btb.youtube_id}?t=${btb.t0.toFixed(0)}`;
         ul.appendChild($li(`${t2ms(btb.t)} <a href=${url} target="_blank">video</a> ${btb.runner} ${warp}`));
         if(btb.note) {
             let ul2 = $ul();

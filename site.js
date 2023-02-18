@@ -113,26 +113,23 @@ let paths = [];
 let btbs = [];
 
 function matches_search( b ) {
-    let prop = props(b)
+    //let prop = props(b)
     if(search.length == 0) {
         return true;
     }
-    if(prop.name.toLowerCase().includes(search)) {
+    if(b.start.toLowerCase().includes(search)) {
         return true;
     }
-    if(prop.to.toLowerCase().includes(search)) {
+    if(b.end.toLowerCase().includes(search)) {
         return true;
     }
-    if(prop.from.toLowerCase().includes(search)) {
+    if(b.runner.toLowerCase().includes(search)) {
         return true;
     }
-    if(prop.enemy.toLowerCase().includes(search)) {
+    if(b.note && b.note.note.toLowerCase().includes(search)) {
         return true;
     }
-    if(prop.enemy_id.toLowerCase().includes(search)) {
-        return true;
-    }
-    if(prop.urls.some(url => url.user.toLowerCase().includes(search) || url.category.toLowerCase().includes(search))) {
+    if(["warp","war","wa","p"].includes(search) && b.warp) {
         return true;
     }
     return false;
@@ -149,19 +146,65 @@ function btb_dist(btb) {
     return dist;
 }
 
+function ss(v) {
+    select_shrine(undefined, undefined, v);
+}
+function $txt(v) {
+    return document.createTextNode(v);
+}
+function $a(txt, url, onclick=undefined) {
+    let a = document.createElement('a');
+    a.appendChild($txt(txt));
+    a.title = "txt";
+    a.href = url;
+    if(onclick) {
+        a.addEventListener('click', onclick);
+    }
+    return a;
+}
+
 function populate_table() {
     let v = $("#app");
     v.innerHTML = "";
     let t = table();
-    for(var i = 0; i < times.length; i++) {
-        let b = times[i];
-        if(! matches_search(b)) {
-            continue;
-        }
-        var d = btb_popup([b], false);
+    for(const paths of Object.values(gtimes)) {
+        let d = div();
         d.classList.add("topborder");
         d.classList.add("mb10");
-        t.appendChild(d);
+        let val = div();
+        let start = paths[0].start;
+        let end = paths[0].end;
+        val.appendChild($a(start, '#', ()=>{ss(start)}))
+        val.appendChild($txt(" - "));
+        val.appendChild($a(end, '#', ()=>{ss(end)}))
+        //val.innerHTML = `<a href="#" onclick="ss(\'${start}\') ">${start}</a> - <a href="#" onclick="ss(\'${end}\')">${end}</a>`;
+        d.appendChild(val);
+        let ul = $ul();
+        d.appendChild(ul);
+        let add = false;
+        for(const path of paths.sort((a,b) => {return a.t-b.t;})) {
+            if(! matches_search(path)) {
+                continue;
+            }
+            add = true;
+            let val = $li();
+            let url = `https://youtu.be/${path.youtube_id}?t=${path.t0.toFixed(0)}`;
+            val.innerHTML = `${t2ms(path.t)} <a href=${url} target="_blank">video</a> ${path.runner}`;
+            ul.appendChild(val);
+            if(path.note) {
+                let ul2 = $ul();
+                ul2.appendChild($li(path.note.note));
+                ul.appendChild(ul2);
+            }
+            if(path.warp) {
+                let ul2 = $ul();
+                ul2.appendChild($li(`Warp from ${path.warp}`));
+                ul.appendChild(ul2);
+            }
+        }
+        if(add) {
+            t.appendChild(d);
+        }
     }
     v.appendChild(t);
 }
@@ -171,21 +214,22 @@ let dungeons;
 let notes = {};
 let starts = {};
 let ends = {};
+let gtimes = {};
 async function init() {
     shrines = await get_file('shrines.json');
     dungeons = await get_file('Dungeon.json');
     times = await get_file("timings.json");
     let tmp_notes = await get_file("notes.json");
 
+    // Convert notes to a hashmap (or dict with key start-end-youtube_id)
     for(const note of tmp_notes) {
-        console.log(note);
         let key = `${note.start}-${note.end}-${note.youtube_id}`;
         if(key in notes) {
             console.log(`Multiple instances, using last version: ${key}`);
         }
         notes[key] = note;
     }
-    
+
     //btbs = file.drawData.features;
     for(var i = 0; i < times.length; i++) {
         let feat = times[i];
@@ -202,10 +246,15 @@ async function init() {
         }
         starts[feat.start].push(feat);
         ends[feat.end].push(feat);
-        key = `${feat.start}-${feat.end}-${feat.youtube_id}`;
+        let key = `${feat.start}-${feat.end}-${feat.youtube_id}`;
         if(key in notes) {
             feat.note = notes[key];
         }
+        key = `${feat.start}-${feat.end}`;
+        if(!(key in gtimes)) {
+            gtimes[key] = [];
+        }
+        gtimes[key].push(feat);
     }
     draw_shrines();
     populate_table();
@@ -340,7 +389,6 @@ function show_layer(shrine_name, group, color, paths) {
             }
             groups[key].push(path);
         }
-        console.log(groups);
         for(const paths of Object.values(groups)) {
             let p0 = xyz2pt(paths[0].geometry.coordinates[0]);
             let p1 = xyz2pt(paths[0].geometry.coordinates[1]);
@@ -351,7 +399,7 @@ function show_layer(shrine_name, group, color, paths) {
     }
 }
 
-function select_shrine(ev, shrine, shrine_name) {
+function select_shrine(_ev, _shrine, shrine_name) {
     // Remove all Layer from Map
     clear_layers();
     // Add paths if existing

@@ -19,6 +19,16 @@ function to_objmap( btb ) {
     }
 }
 
+let show_id = $('#show_ids').checked;
+function show_ids() {
+    let el = $('#show_ids');
+    show_id = el.checked;
+    clear_layers();
+    shrine_start_group = {};
+    shrine_end_group = {};
+    populate_table();
+}
+
 function doit( file ) {
     var x = btbs.find(b => b.properties.file == file);
     x = to_objmap( x );
@@ -126,8 +136,16 @@ function matches_search( b ) {
     if(b.runner.toLowerCase().includes(search)) {
         return true;
     }
-    if(b.note && b.note.note.toLowerCase().includes(search)) {
-        return true;
+    if(b.note) {
+        let notes = b.note.note;
+        if(!Array.isArray(notes)) {
+            notes = [notes];
+        }
+        for(const note of notes) {
+            if(note.toLowerCase().includes(search)) {
+                return true;
+            }
+        }
     }
     if(["warp","war","wa","p"].includes(search) && b.warp) {
         return true;
@@ -177,7 +195,6 @@ function populate_table() {
         val.appendChild($a(start, '#', ()=>{ss(start)}))
         val.appendChild($txt(" - "));
         val.appendChild($a(end, '#', ()=>{ss(end)}))
-        //val.innerHTML = `<a href="#" onclick="ss(\'${start}\') ">${start}</a> - <a href="#" onclick="ss(\'${end}\')">${end}</a>`;
         d.appendChild(val);
         let ul = $ul();
         d.appendChild(ul);
@@ -199,6 +216,11 @@ function populate_table() {
             if(path.warp) {
                 let ul2 = $ul();
                 ul2.appendChild($li(`Warp from ${path.warp}`));
+                ul.appendChild(ul2);
+            }
+            if(show_id) {
+                let ul2 = $ul();
+                ul2.appendChild($li(`ID: ${path.youtube_id}`));
                 ul.appendChild(ul2);
             }
         }
@@ -301,19 +323,27 @@ function btb_popup( btbs, long) {
     let ul = $ul();
     for(const btb of btbs.sort((a,b) => {return a.t-b.t;})) {
         let warp = "";
-        if(btb.warp) {
-            warp = `Warp ${btb.warp}`;
-        }
         let url = `https://youtu.be/${btb.youtube_id}?t=${btb.t0.toFixed(0)}`;
-        ul.appendChild($li(`${t2ms(btb.t)} <a href=${url} target="_blank">video</a> ${btb.runner} ${warp}`));
+        ul.appendChild($li(`${t2ms(btb.t)} <a href=${url} target="_blank">video</a> ${btb.runner} `));
         if(btb.note) {
-            let ul2 = $ul();
-            ul2.appendChild($li(btb.note.note));
-            ul.appendChild(ul2);
+            let notes = btb.note.note;
+            if(!Array.isArray(notes)) {
+                notes = [notes];
+            }
+            notes.forEach(note => {
+                let ul2 = $ul();
+                ul2.appendChild($li(note));
+                ul.appendChild(ul2);
+            });
         }
         if(btb.warp) {
             let ul2 = $ul();
             ul2.appendChild($li(`Warp from ${btb.warp}`));
+            ul.appendChild(ul2);
+        }
+        if(show_id) {
+            let ul2 = $ul();
+            ul2.appendChild($li(`ID: ${btb.youtube_id}`));
             ul.appendChild(ul2);
         }
     }
@@ -427,7 +457,6 @@ function draw_shrines() {
 }
 
 function draw_btb(p1, p2, color, btbs) {
-    //var prop = props(btb);
     var q1 = tr.transform(L.point(p1.x,p1.y)); // From
     var q2 = tr.transform(L.point(p2.x,p2.y)); // To
     var q3 = q1.add(q2).divideBy(2);           // Midpoint
@@ -436,11 +465,11 @@ function draw_btb(p1, p2, color, btbs) {
     let head = arrow_head(marker).addTo(map);
     let btb = btbs[0];
     marker.bindTooltip( `${btb.start} - ${btb.end}` );
+
     // Do not open tooltip on click, grumble
     marker._events.click.pop();
     marker.bindPopup( btb_popup( btbs, true) );
     map.almostOver.addLayer( marker );
-    //markers[btb.end] = marker;
     return [marker, head];
 }
 function arrow_head( line ) {
@@ -448,8 +477,10 @@ function arrow_head( line ) {
         patterns: [
             {
                 offset: '100%', repeat: 0, symbol:
-                L.Symbol.arrowHead({pixelSize: 7.5, polygon: false,
-                                    pathOptions: {weight: 2, stroke: true, color: xcolor}})}
+                L.Symbol.arrowHead({
+                    pixelSize: 7.5, polygon: false,
+                    pathOptions: {weight: 2, stroke: true, color: xcolor}})
+            }
         ]
     });
 }
@@ -462,6 +493,7 @@ function handleSearch(ev) {
 
 let search = "";
 $("#search").addEventListener('input', handleSearch);
+search = $("#search").value.toLowerCase().trim();
 
 init();
 
@@ -483,19 +515,12 @@ var map = L.map('map', {
     zoom: 3,
     crs: crs
 });
-var single_image = false;
-if(single_image) {
-    L.imageOverlay('BotW-Map_6.jpg', bounds).addTo(map);
-} else {
-    L.tileLayer(
-        "https://objmap.zeldamods.org/game_files/maptex/{z}/{x}/{y}.png",
-        {
-            attribution: '<a href="https://objmap.zeldamods.org/">Zeldamods Object Map</a>',
-            minZoom: MIN_ZOOM,
-            maxZoom: MAX_ZOOM,
-            tileSize: 256,
-        }).addTo(map);
-}
+L.tileLayer("https://objmap.zeldamods.org/game_files/maptex/{z}/{x}/{y}.png", {
+    attribution: '<a href="https://objmap.zeldamods.org/">Zeldamods Object Map</a>',
+    minZoom: MIN_ZOOM,
+    maxZoom: MAX_ZOOM,
+    tileSize: 256,
+}).addTo(map);
 var sW = map.unproject([-6000, -5000], 0);
 var nE = map.unproject([6000, 5000], 0);
 map.setMaxBounds( L.latLngBounds( sW, nE ));

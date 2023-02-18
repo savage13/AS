@@ -3,6 +3,12 @@
         "start": "Jitan Sa'mi",
         "end": "Shoqa Tatone",
         "youtube_id": "zvQCoKwAW6w",
-        "note": "BLSS"
+        "note": ["BLSS"]
+    },
+    {
+        "start": "Jitan Sa'mi",
+        "end": "Shoqa Tatone",
+        "youtube_id": "juT7xeQc3wk",
+        "note": ["BLSS"]
     }
 ]

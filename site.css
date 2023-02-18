@@ -1,0 +1,173 @@
+.table {
+    display: table;
+}
+.row {
+    display: table-row;
+}
+.col {
+    display: table-cell;
+}
+.bold {
+    font-weight: bold;
+}
+.table div {
+    font-size: 0.95em;
+}
+.bottomborder {
+    border-bottom: 1px solid black;
+}
+.topborder {
+    border-top: 1px solid black;
+}
+#map {
+    width: 100vwx;
+    height: 100vh;
+    background-color: #070A0A;
+}
+@media only screen and (min-width: 600px) {
+    #map {
+        height: 100%;
+        width: 100%;
+    }
+    .table {
+        margin: auto;
+    }
+    .text {
+        width: 100%;;
+    }
+
+}
+input {
+    font-size: 0.95em;
+}
+.inputwrap {
+    display: table;
+    margin: auto;
+    font-size: 0.95em;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+.pl10 {
+    padding-left: 10px;
+}
+.mb10 {
+    margin-bottom: 10px;
+}
+h2 {
+    margin: 0px;
+}
+@keyframes blink {
+    0% { opacity: .2; }
+    20% { opacity: 1; }
+    100% { opacity: .2; }
+}
+.waiting-dots span {
+    animation-name: blink;
+    animation-duration: 1.4s;
+    animation-iteration-count: infinite;
+    animation-fill-mode: both;
+}
+.waiting-dots span:nth-child(2) {
+    animation-delay: .2s;
+}
+.waiting-dots span:nth-child(3) {
+    animation-delay: .4s;
+}
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #070A0A;
+}
+#sidebar {
+    color: #dedede;
+    font-size: 1em;
+    width: 30%;
+    min-width: 250px;
+    border-right: 1px solid #cccccc40;
+    margin: 0;
+    padding: 0;
+    top: 0;
+    z-index: 2000;
+    position: fixed;
+    height: 100%;
+    overflow-y: auto;
+    background: #00000080;
+}
+.sidebarcontent {
+    height: 100%;
+    padding: 2em;
+    font-size: 0.9em;
+}
+
+#fakesidebar {
+    display: none;
+    color: #dedede;
+    font-size: 1.0em;
+    font-weight: bold;
+    width: 20px;
+    border-right: 1px solid #cccccc40;
+    margin: 0;
+    padding: 0.2em;
+    top: 0;
+    z-index: 2000;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    background: #00000080;
+}
+#sidebar_close {
+    position: absolute;
+    top: 0.2em;
+    right: 1.2em;
+    color: #dedede;
+    font-size: 16pt;
+    cursor: pointer;
+    font-weight: bold;
+}
+#sidebar_open {
+    top: 0.2em;
+    left: 0.2em;
+    color: #dedede;
+    font-size: 16pt;
+    cursor: pointer;
+    font-weight: bold;
+}
+@font-face {
+    font-family: CalamityB;
+    font-weight: bold;
+    font-style: italic;
+    src: url('./Calamity-Bold.otf');
+}
+a {
+    color: #60B0E0;
+}
+a:visited {
+    color: #60B0E0;
+}
+#title img {
+    height: 1.6em;
+    vertical-align: middle;
+    transform: translateY(-0.1em);
+}
+.leaflet-tooltip {
+    font-family: CalamityB;
+    color: white;
+    background: #0000007f;
+    border: none;
+}
+.leaflet-tooltip::before {
+    border: none;
+}
+
+/* Make the polylines in the overlay pane appear above the markers */
+.leaflet-overlay-pane { z-index: 666; }
+.leaflet-shadow-pane  { z-index: 4; }
+
+ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+li {
+    padding-left: 4px;
+}

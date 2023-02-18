@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>All Shrines ⛩</title>
+    <link rel='stylesheet' href='global.css'>
+    <link rel="stylesheet" href="leaflet/leaflet.css" />
+    <link rel="stylesheet" href="leaflet/L.Control.MousePosition.css" />
+    <script src="leaflet/leaflet.js"></script>
+    <script src="leaflet/leaflet.polylineDecorator.js"></script>
+    <script src="leaflet/L.Control.MousePosition.js"></script>
+    <script src="leaflet/leaflet.almostover.js"></script>
+    <script src="leaflet/leaflet.geometryutil.js"></script>
+    <link rel='stylesheet' href='site.css'>
+    <script src="site.js" defer></script>
+
+  </head>
+  <body>
+    <div id="map"></div>
+    <div id="fakesidebar"><div id="sidebar_open" onclick="open_sidebar()">&#x2192;</div></div>
+
+    <div id="sidebar">
+      <div class="sidebarcontent">
+        <div id="sidebar_close" onclick="close_sidebar()">&#x2190;</div>
+      <h2 id="title"><img src="mapicon_dungeon.svg"> All Shrines Catalog</h2>
+      <div class="inputwrap">
+        <input type="text" id="search" placeholder="Filter Shrines ...">
+      </div>
+      <a href="timings.json">All Shrines (json)</a>
+      <div class="text">Click on any path for more info. All data is also contained in the list below.
+      </div>
+      <div id="app">
+        <div style="text-align: center; color: gray; font-size: 0.95em;">
+          <div class="waiting-dots">Loading Shrine paths
+            <span>.</span>
+            <span>.</span>
+            <span>.</span>
+          </div>
+        </div>
+      </div>
+      <div class="text">
+        Credit is due to the <a href="https://objmap.zeldamods.org/">Zeldamods Object Map</a>
+        for the map tiles, object locations and drawing capabilities;
+        also to Breath of the Wild Speedrun Community.
+        <br>
+        If something is wrong, a path is missing, or a good example of a
+        strat is missing, please let me know and I will add it.
+      </div>
+      </div>
+    </div>
+  </body>
+</html>

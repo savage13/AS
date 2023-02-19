@@ -89,7 +89,7 @@ def get_segments(data, shrines):
             elif name == 'start':
                 start = item
             elif name not in oks:
-                print(name)
+                print(f'"{name}"')
     return out
 
 def dist(a,b):

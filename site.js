@@ -136,6 +136,9 @@ function matches_search( b ) {
     if(b.runner.toLowerCase().includes(search)) {
         return true;
     }
+    if(b.warp && b.warp.toLowerCase().includes(search)) {
+        return true;
+    }
     if(b.note) {
         let notes = b.note.note;
         if(!Array.isArray(notes)) {

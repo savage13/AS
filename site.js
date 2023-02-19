@@ -459,9 +459,10 @@ function draw_shrines() {
         if(n > 119) {
             icon = shrine_dlc_icon;
         }
+        const y = shrine.pos[1].toFixed(0);
         name = name.replace("Shrine","").trim();
         let m = L.marker([shrine.pos[2], shrine.pos[0]], {icon: icon})
-            .bindTooltip(name)
+            .bindTooltip(`${name} - ${y}m`)
             .addTo(map)
             .on("click", (ev) => {select_shrine(ev, shrine, name)});
 

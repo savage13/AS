@@ -184,6 +184,15 @@ function $a(txt, url, onclick=undefined) {
     return a;
 }
 
+function video_url(data) {
+    if(data.video_type == "youtube") {
+        return `https://youtu.be/${data.video_id}?t=${data.t0.toFixed(0)}`;
+    }
+    if(data.video_type == "twitch") {
+        return `https://www.twitch.tv/videos/${data.video_id}?t=${data.t0.toFixed(0)}s`
+    }
+}
+
 function populate_table() {
     let v = $("#app");
     v.innerHTML = "";
@@ -208,7 +217,7 @@ function populate_table() {
             }
             add = true;
             let val = $li();
-            let url = `https://youtu.be/${path.youtube_id}?t=${path.t0.toFixed(0)}`;
+            let url = video_url(path);//`https://youtu.be/${path.youtube_id}?t=${path.t0.toFixed(0)}`;
             val.innerHTML = `${t2ms(path.t)} <a href=${url} target="_blank">video</a> ${path.runner}`;
             ul.appendChild(val);
             if(path.note) {
@@ -326,7 +335,7 @@ function btb_popup( btbs, long) {
     let ul = $ul();
     for(const btb of btbs.sort((a,b) => {return a.t-b.t;})) {
         let warp = "";
-        let url = `https://youtu.be/${btb.youtube_id}?t=${btb.t0.toFixed(0)}`;
+        let url = video_url(btb);//`https://youtu.be/${btb.youtube_id}?t=${btb.t0.toFixed(0)}`;
         ul.appendChild($li(`${t2ms(btb.t)} <a href=${url} target="_blank">video</a> ${btb.runner} `));
         if(btb.note) {
             let notes = btb.note.note;

@@ -74,7 +74,8 @@ def get_segments(data, shrines):
                 't1': t1,
                 't0w': tw,
                 'geometry': geom,
-                'youtube_id': data['video_id'],
+                'video_id': data['video_id'],
+                'video_type': data['video_type'],
                 'runner': translate_runner(data['author']),
             })
             start, warp, ctrl = item, None, None

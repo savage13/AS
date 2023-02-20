@@ -30,6 +30,7 @@ def shrine_data():
         tmp[name]['sub'] = shrines[shrine +'_sub']
     tmp['start'] = {'pos': [-1099.10, 242.00, 1876.31], 'value': 'Shrine of Resurrection'}
     tmp['Paraglider'] = {'pos': [-809.33, 263.58, 1964.35], 'value': 'Old Man', 'sub': 'Paraglider'}
+    tmp['Hateno Ancient Tech Lab'] = {'pos': [3777.71, 355.49, 2127.36], 'value': 'Hateno Ancient Tech Lab'}
     return tmp
 
 def get_segments(data, shrines):

@@ -191,6 +191,9 @@ function video_url(data) {
     if(data.video_type == "twitch") {
         return `https://www.twitch.tv/videos/${data.video_id}?t=${data.t0.toFixed(0)}s`
     }
+    if(data.video_type == "bilibili") {
+        return `https://www.bilibili.com/video/${data.video_id}/?share_source=copy_web&t=${data.t0.toFixed(0)}`;
+    }
 }
 
 function populate_table() {

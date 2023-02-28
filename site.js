@@ -266,7 +266,7 @@ async function init() {
         }
         notes[key] = note;
     }
-
+    let route_ids = {};
     //btbs = file.drawData.features;
     for(var i = 0; i < times.length; i++) {
         let feat = times[i];
@@ -292,17 +292,96 @@ async function init() {
             gtimes[key] = [];
         }
         gtimes[key].push(feat);
+        if(feat.video_id in route_ids) {
+            const t = route_ids[feat.video_id].time
+            route_ids[feat.video_id].time = Math.max(feat.time, t);
+        } else {
+            route_ids[feat.video_id] = {'runner': feat.runner, 'time': feat.time, 'video_id': feat.video_id};
+        }
     }
     draw_shrines();
     populate_table();
     //draw_btbs();
+    const routes = $('#routes');
+    for(const val of Object.values(route_ids).sort((a,b) => a.time - b.time)) {
+        const li = document.createElement('li');
+        li.appendChild($a(`${t2hms(val.time)} ${val.runner}`,'#', (ev) => {
+            draw_route(val.video_id);
+        }));
+        routes.appendChild(li);
+    }
 }
+function rainbow(min, max, val)
+{
+    var maxHue = 300, minHue=0;
+    var curPercent = (val - min) / (max-min);
+    const hue = ((curPercent * (maxHue-minHue) ) + minHue).toFixed(1);
+    var colString = "hsl(" + hue + ",100%,66%)";
+    return colString;
+}
+
+function draw_route(video_id) {
+    clear_layers();
+    let nwarps = 0;
+    for (const time of times) {
+        if(time.video_id == video_id) {
+            if(time.warp_path) {
+                nwarps += 1;
+            }
+        }
+    }
+    let warp = 0;
+    let markers = [];
+    for(const time of times) {
+        if(time.video_id == video_id) {
+            if(time.warp_path) {
+                warp += 1;
+                let p0 = xyz2pt(time.warp_path.geometry.coordinates[0]);
+                let p1 = xyz2pt(time.warp_path.geometry.coordinates[1]);
+                let fake = [{
+                    start: `Warp: ${time.warp}`,
+                    end: time.start,
+                    dist: 0.0,
+                    t: 30.0,
+                    runner: time.runner,
+                    video_id: time.video_id,
+                    t0: time.t0,
+                    video_type: time.video_type,
+                }];
+                console.log(fake);
+                let m = draw_btb(p0, p1, "rgba(255,255,255,0.5)", fake);
+                markers.push( ... m );
+            }
+            let p0 = xyz2pt(time.geometry.coordinates[0]);
+            let p1 = xyz2pt(time.geometry.coordinates[1]);
+            let color = rainbow(0, nwarps, warp);
+            let m = draw_btb(p0, p1, color, [time]);
+            markers.push( ... m );
+        }
+    }
+    shrine_start_group['route'] = L.layerGroup(markers);
+}
+
+
+
 function draw_btbs() {
     paths.forEach((p,i) => draw_btb(p[0], p[1], "red", times[i]));
 }
 
 function div() {
     return document.createElement('div');
+}
+
+function t2hms(t) {
+    let h = Math.floor(t / 3600.0);
+    t = t - h * 3600.0;
+    let m = Math.floor(t / 60.0);
+    let sfull = t - m * 60.0;
+    let s = Math.floor(sfull).toFixed(0).padStart(2,'0');
+    let part = ((sfull - s) * 1000).toFixed(0).padStart(3,'0');
+    h = h.toFixed(0);
+    m = m.toFixed(0).padStart(2,'0');
+    return `${h}:${m}:${s}.${part}`;
 }
 
 function t2ms(t) {
@@ -328,9 +407,9 @@ function btb_popup( btbs, long) {
     let up = div();
     //let dist = btb_dist(btb);
     let dist = btb.dist;
-    let speed_ms = dist / btb.t;
-    let speed_kmh = mps_to_kmph(speed_ms);
-    let speed_mph = mps_to_mph(speed_ms);
+    //let speed_ms = dist / btb.t;
+    //let speed_kmh = mps_to_kmph(speed_ms);
+    //let speed_mph = mps_to_mph(speed_ms);
     let d = div();
     d.innerHTML = `<b>${btb.start} - ${btb.end}</b>`;
     up.appendChild(d);
@@ -362,7 +441,7 @@ function btb_popup( btbs, long) {
             ul.appendChild(ul2);
         }
     }
-    if(long) {
+    if(long && btb.dist > 0.0) {
         ul.appendChild($li( `Distance ${btb.dist.toFixed(2)} m` ))
     }
     up.appendChild(ul);
@@ -472,13 +551,19 @@ function draw_shrines() {
     }
 }
 
+// btb
+//   start-end
+//   dist
+//   t
+//   runner
+
 function draw_btb(p1, p2, color, btbs) {
     var q1 = tr.transform(L.point(p1.x,p1.y)); // From
     var q2 = tr.transform(L.point(p2.x,p2.y)); // To
     var q3 = q1.add(q2).divideBy(2);           // Midpoint
     var line = [[q1.y, q1.x],[q2.y, q2.x]];    // Line
     var marker = L.polyline(line, {weight: 2, color: color}).addTo(map);
-    let head = arrow_head(marker).addTo(map);
+    let head = arrow_head(marker, color).addTo(map);
     let btb = btbs[0];
     marker.bindTooltip( `${btb.start} - ${btb.end}` );
 
@@ -488,14 +573,14 @@ function draw_btb(p1, p2, color, btbs) {
     map.almostOver.addLayer( marker );
     return [marker, head];
 }
-function arrow_head( line ) {
+function arrow_head( line, color ) {
     return L.polylineDecorator(line, {
         patterns: [
             {
                 offset: '100%', repeat: 0, symbol:
                 L.Symbol.arrowHead({
                     pixelSize: 7.5, polygon: false,
-                    pathOptions: {weight: 2, stroke: true, color: xcolor}})
+                    pathOptions: {weight: 2, stroke: true, color: color}})
             }
         ]
     });

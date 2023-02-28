@@ -34,6 +34,7 @@ def shrine_data():
     tmp['start'] = {'pos': [-1099.10, 242.00, 1876.31], 'value': 'Shrine of Resurrection'}
     tmp['Paraglider'] = {'pos': [-809.33, 263.58, 1964.35], 'value': 'Old Man', 'sub': 'Paraglider'}
     tmp['Hateno Ancient Tech Lab'] = {'pos': [3777.71, 355.49, 2127.36], 'value': 'Hateno Ancient Tech Lab'}
+    tmp['Dark Beast'] = {'pos': [0,0,0], 'value': 'Dark Beast','sub':'Dark Beast'}
     return tmp
 
 def get_segments(data, shrines):
@@ -41,11 +42,14 @@ def get_segments(data, shrines):
     items = data['items']
     items = sorted(items, key=lambda x: x['time'])
     start,warp,ctrl = None,None,None
+    run_start = None
     out = []
     n = 0
     for item in items:
         name = item['value']
-        if name in shrines and name not in ['start'] :
+        if (name in shrines and name not in ['start']) or name == 'Dark Beast':
+            if name == 'start':
+                run_start = item
             if start is None:
                 raise ValueError('starting point is undefind')
             n += 1
@@ -66,22 +70,35 @@ def get_segments(data, shrines):
             if warp:
                 warp_name = start['value']
             geom = {'coordinates': [p0,p1]}
-            out.append({
+            seg = {
                 'start': i0['value'].replace(" Warp",""),
                 'end': i1['value'],
                 'warp': warp_name,
                 'sub': s1['sub'],
-                't': t1 - t0,
-                'tw': t1 - tw,
+                't': t1 - t0,   # Segment time
+                'tw': t1 - tw,  # Segment time without warp
                 'dist': d,
-                't0': t0,
-                't1': t1,
-                't0w': tw,
+                't0': t0,       # Time in video start
+                't1': t1,       # Time in video end
+                't0w': tw,      # Time in video without warp
                 'geometry': geom,
                 'video_id': data['video_id'],
                 'video_type': data['video_type'],
                 'runner': translate_runner(data['author']),
-            })
+                'time': t1 - run_start['time']
+            }
+            if warp:
+                sw = shrines[start['value'].replace(" Warp", "")]
+                pw = sw['pos']
+                seg['warp_path'] = {
+                    'geometry': {
+                        'coordinates': [
+                            pw,
+                            p0,
+                        ]
+                    }
+                }
+            out.append(seg)
             start, warp, ctrl = item, None, None
 
         else:
@@ -93,6 +110,7 @@ def get_segments(data, shrines):
                 start = item
             elif name == 'start':
                 start = item
+                run_start = item
             elif name not in oks:
                 print(f'"{name}"')
     return out
@@ -117,4 +135,4 @@ if __name__ == '__main__':
         if len(missing) > 0:
             print(missing)
         all_segs.extend(segs)
-json.dump(all_segs, open('timings.json','w'))
+    json.dump(all_segs, open('timings.json','w'))

@@ -235,7 +235,7 @@ function populate_table() {
             }
             if(show_id) {
                 let ul2 = $ul();
-                ul2.appendChild($li(`ID: ${path.youtube_id}`));
+                ul2.appendChild($li(`ID: ${path.video_id}`));
                 ul.appendChild(ul2);
             }
         }

@@ -24,6 +24,9 @@ def shrine_data():
             continue
         if shrine.startswith('Endurance'):
             continue
+        num = int(shrine.replace("Dungeon",""))
+        if num >= 120:
+            continue
         #print(shrine)
         name = name.replace(" Shrine", "")
         tmp[name] = get_shrine_data(sdata, shrine)
@@ -108,5 +111,10 @@ if __name__ == '__main__':
         print(file)
         data = json.load(open(file, 'r'))
         segs = get_segments(data, shrines)
+        names = set([s['end'] for s in segs])
+        missing = set(shrines.keys()) - names
+        missing = missing - set(['start','Hateno Ancient Tech Lab'])
+        if len(missing) > 0:
+            print(missing)
         all_segs.extend(segs)
 json.dump(all_segs, open('timings.json','w'))
